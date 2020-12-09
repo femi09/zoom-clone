@@ -1,10 +1,16 @@
 import express from "express";
+import { v4 as uuidv4} from "uuid"
 const app = express();
 
 app.set("view engine", "ejs")
+app.use(express.static("public"))
+
+app.get("/:room", (req, res) => {
+    res.render("room", {roomId: req.params.room})
+})
 
 app.get("/", (req, res) => {
-    res.render("room")
+    res.redirect(`/${uuidv4()}`); //the route automatically generate a uuid and and redirects to it
 })
 
 
