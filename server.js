@@ -1,8 +1,10 @@
 import express from "express";
 const app = express();
 
+app.set("view engine", "ejs")
+
 app.get("/", (req, res) => {
-    res.status(200).send("Hello World")
+    res.render("room")
 })
 
 
