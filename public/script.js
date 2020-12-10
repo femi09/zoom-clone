@@ -2,6 +2,7 @@ const socket = io("/");
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
+const peers = {};
 
 const peer = new Peer(undefined, {
   path: "/peerjs",
@@ -29,12 +30,17 @@ navigator.mediaDevices
     });
 
     socket.on("user-connected", (userId) => {
+      console.log("User Connected " + userId);
       connectToNewUser(userId, stream);
     });
   });
 
-peer.on("open", (userId) => {
-  socket.emit("join-room", ROOM_ID, userId);
+socket.on("user-disconnected", (userId) => {
+  if (peers[userId]) peers[userId].close();
+});
+
+peer.on("open", (id) => {
+  socket.emit("join-room", ROOM_ID, id);
 });
 
 const connectToNewUser = (userId, stream) => {
@@ -43,6 +49,11 @@ const connectToNewUser = (userId, stream) => {
   call.on("stream", (userVideoStream) => {
     addVideoStream(video, userVideoStream);
   });
+
+  call.on("close", () => {
+    video.remove();
+  });
+  peers[userId] = call;
 };
 
 const addVideoStream = (video, stream) => {
