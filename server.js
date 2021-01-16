@@ -28,10 +28,14 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
+  //an event for when the user  joins the room. We broadcast to all user except 
+  // the user that's sending the information. We emit an event and pass the id of the connected user
   socket.on("join-room", (roomId, userId) => {
     socket.join(roomId);
     socket.to(roomId).broadcast.emit("user-connected", userId);
 
+    //an event for when the user is disconnected. We broadcast to all user except 
+    // the user that's disconnected. We emit an event and pass the id of the disconnected user
     socket.on("disconnect", () => {
         socket.to(roomId).broadcast.emit("user-disconnected", userId);
       });

@@ -1,9 +1,10 @@
-const socket = io("/");
+const socket = io("/"); //calling the socket IO server
 const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 const peers = {};
 
+// initializing the peerjs library
 const peer = new Peer(undefined, {
   path: "/peerjs",
   host: "/",
@@ -11,6 +12,9 @@ const peer = new Peer(undefined, {
 });
 
 let myVideoStream;
+
+// using the navigator api to get reference to our webcam to display our stream.
+// We append the stream to our video element
 
 navigator.mediaDevices
   .getUserMedia({
@@ -21,6 +25,8 @@ navigator.mediaDevices
     myVideoStream = stream;
     addVideoStream(myVideo, stream);
 
+    // answering the call and allow stream to show in the other user's browser
+    // by binding the an event on the peer object when the user is there
     peer.on("call", (call) => {
       call.answer(stream);
       const video = document.createElement("video");
@@ -39,23 +45,30 @@ socket.on("user-disconnected", (userId) => {
   if (peers[userId]) peers[userId].close();
 });
 
+// when the peer js has an open connection. We emit an event passing the current roomId
+// and the current id of the user
 peer.on("open", (id) => {
   socket.emit("join-room", ROOM_ID, id);
 });
 
 const connectToNewUser = (userId, stream) => {
+  // using the peerjs call method to call the other user with the userId
+  // and also passing our own stream
   const call = peer.call(userId, stream);
+  // we are creating another video element and when the call is successful
+  // we are again adding the stream to our video element
   const video = document.createElement("video");
   call.on("stream", (userVideoStream) => {
     addVideoStream(video, userVideoStream);
   });
-
+  // removing the video when the call is stopped
   call.on("close", () => {
     video.remove();
   });
   peers[userId] = call;
 };
 
+// appending the stream to our video element
 const addVideoStream = (video, stream) => {
   video.srcObject = stream;
   video.addEventListener("loadedmetadata", () => {
